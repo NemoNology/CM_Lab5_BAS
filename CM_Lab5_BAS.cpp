@@ -1,12 +1,14 @@
 ﻿#include <iostream>
 #include <vector>
 #include <iomanip>
+#include "CM_Lab5_BAS.h"
 
 
 using namespace std;
 
 
 // Функции для вывода:
+
 
 
 // Функция для вывода 2D матрицы;
@@ -16,7 +18,7 @@ void Show_2D_Matrix(const vector<vector<double>>& a) {
         cout << "\t";
         for (unsigned short j = 0; j < a[i].size(); j++) {
 
-            cout << setw(10) << setprecision(8) << a[i][j];
+            cout << setw(14) << setprecision(8) << a[i][j];
 
         }
         cout << endl;
@@ -40,6 +42,65 @@ void Show_1D_Matrix(const vector<double>& a) {
 //##################################################################################################################
 
 // Различные методы:
+
+
+// Функция суммрования элементов массива - нахождения b[i][k]
+float Lab5_Sigma1(const vector<vector<double>> b, const vector<vector<double>> t, const unsigned short k, const unsigned short i) {
+
+    float res = 0.0; // Result;
+
+    
+    for (unsigned short m = 0; m < k - 1; m++) {
+
+        res += b[i][m] * t[m][k];
+
+    }
+
+
+    return res;
+
+}
+
+
+// Функция суммрования элементов массива - нахождения t[k][j]
+float Lab5_Sigma2(const vector<vector<double>> b, const vector<vector<double>> t, const unsigned short k, const unsigned short j) {
+
+    float res = 0.0; // Result;
+
+
+    for (unsigned short m = 0; m < k; m++) {
+
+        res += b[k][m] * t[m][j];
+
+    }
+
+
+    return res;
+
+}
+
+
+
+// Функция для разделения изначальной матрицы на матрицу а и вектор с
+// todo: доделай
+vector<double> Arr_Cut(vector<vector<double>> a) {
+
+    vector<double> c(a.size());
+
+
+    for (unsigned short i = 0; i < a.size(); i++) {
+
+        c[i] = a[i][a.size()];
+
+        a[i].resize(a.size() - 1);
+
+    }
+
+    return c;
+
+}
+
+
 
 
 // Функция для обнуления 2D матрицы
@@ -121,7 +182,13 @@ void Swith_Lines_a00(vector<vector<double>>& a, bool sign) {
 //################################################################################################################## 
 
 // Метод Халецкого;
-void Method(const vector<vector<double>>& a) {
+
+//
+void Method(const vector<vector<double>>& a, const vector<double> c) {
+
+
+
+
 
 
     // Создание 1Д\2Д матриц для записи B & T; Y матриц, а также для записи результатов (х)
@@ -149,18 +216,31 @@ void Method(const vector<vector<double>>& a) {
 
         }
 
+        t[i][i] = 1;
+
     }
 
-    // Вычисление [i][k] & t[k]["j"]
-    for (unsigned short k = 0; k < a.size(); k++) {
+    // Вычисление [i][k] & t[k][j]
+    for (unsigned short k = 1; k < a.size(); k++) {
 
-        for (unsigned short i = 0; i < a.size(); i++) {
+        for (unsigned short i = k; i < a.size(); i++) {
 
+            for (unsigned short j = k + 1; j < a.size(); j++) {
 
+                b[i][k] = a[i][k] - Lab5_Sigma1(b, t, k, i);
 
+                t[k][j] = (1 / b[k][k]) * (a[k][j] - Lab5_Sigma2(b, t, k, j));
+
+            }   
         }
 
     }
+
+
+    cout << "\nB Matrix:";
+    Show_2D_Matrix(b);
+    cout << "T Matrix:";
+    Show_2D_Matrix(t);
     
 
 }
@@ -186,7 +266,9 @@ int main()
     
     // ##############################################################
 
-    
+    vector<double> c;
+
+
     // Вызов метода
     cout << "\nInitial matrix:";
     Show_2D_Matrix(mat);
@@ -194,9 +276,16 @@ int main()
     // Проверка на a[0][0] = 0
     Swith_Lines_a00(mat, Zero_Check_a00(mat)); 
 
+
+    c = Arr_Cut(mat);
+
+    Show_1D_Matrix(c);
+
+    Show_2D_Matrix(mat);
+
     // Вывод результатов решения
     cout << "\nFinal response matrix";   
-    Method(mat);
+    Method(mat, c);
     
     system("pause"); // Окончание программы
     return 0;
