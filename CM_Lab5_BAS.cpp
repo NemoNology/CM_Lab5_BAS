@@ -7,6 +7,10 @@
 using namespace std;
 
 
+// todo: Delete
+unsigned int pause;
+
+
 // Функции для вывода:
 
 
@@ -25,6 +29,7 @@ void Show_2D_Matrix(const vector<vector<double>>& a) {
     }
     cout << "\n\n";
 }
+
 
 // Функция для вывода 1D матрицы
 void Show_1D_Matrix(const vector<double>& a) {
@@ -50,7 +55,7 @@ float Lab5_Sigma1(const vector<vector<double>> b, const vector<vector<double>> t
     float res = 0.0; // Result;
 
     
-    for (unsigned short m = 0; m < k - 1; m++) {
+    for (unsigned short m = 0; m < k; m++) {
 
         res += b[i][m] * t[m][k];
 
@@ -65,7 +70,7 @@ float Lab5_Sigma1(const vector<vector<double>> b, const vector<vector<double>> t
 // Функция суммрования элементов массива - нахождения t[k][j]
 float Lab5_Sigma2(const vector<vector<double>> b, const vector<vector<double>> t, const unsigned short k, const unsigned short j) {
 
-    float res = 0.0; // Result;
+    float res = 0; // Result;
 
 
     for (unsigned short m = 0; m < k; m++) {
@@ -80,10 +85,40 @@ float Lab5_Sigma2(const vector<vector<double>> b, const vector<vector<double>> t
 }
 
 
+// Функция суммирования элементов массива - нахождение y[i]
+float Lab5_Sigma3(const vector<vector<double>> b, const vector<double> y, const unsigned short i) {
+
+    float res = 0; // Result
+
+    for (unsigned short m = 0; m < i; m++) {
+
+        res += b[i][m] * y[m];
+
+    }
+
+    return res;
+
+}
+
+
+// Функция суммирования элементов массива - нахождение x[i]
+float Lab5_Sigma4(const vector<vector<double>> t, const vector<double> x, const unsigned short i, const unsigned short n) {
+
+    float res = 0; // Result
+
+    for (unsigned short m = i + 1; m < n; m++) {
+
+        res += t[i][m] * x[m];
+
+    }
+
+    return res;
+
+}
 
 // Функция для разделения изначальной матрицы на матрицу а и вектор с
 // todo: доделай
-vector<double> Arr_Cut(vector<vector<double>> a) {
+vector<double> Arr_Cut(vector<vector<double>>& a) {
 
     vector<double> c(a.size());
 
@@ -92,7 +127,7 @@ vector<double> Arr_Cut(vector<vector<double>> a) {
 
         c[i] = a[i][a.size()];
 
-        a[i].resize(a.size() - 1);
+        a[i].resize(a.size());
 
     }
 
@@ -145,6 +180,8 @@ bool Zero_Check_a00(const vector<vector<double>>& a) {
     return 0;
 }
 
+
+// todo: think
 // Функция для перестановки строк, при условии, что a[i][i] (На которое мы делим) = 0 
 void Swith_Lines_aii(vector<vector<double>>& a, const short int sign) {
 
@@ -198,6 +235,7 @@ void Method(const vector<vector<double>>& a, const vector<double> c) {
     vector<vector<double>> t = a;
 
 
+
     // Обнуляем матрицы B & T;
     Zeroing_2D_Matrix(b); 
     Zeroing_2D_Matrix(t);
@@ -220,8 +258,15 @@ void Method(const vector<vector<double>>& a, const vector<double> c) {
 
     }
 
+
     // Вычисление [i][k] & t[k][j]
     for (unsigned short k = 1; k < a.size(); k++) {
+
+        if (k == 4) {
+
+            pause = 0.2;
+
+        }
 
         for (unsigned short i = k; i < a.size(); i++) {
 
@@ -241,6 +286,45 @@ void Method(const vector<vector<double>>& a, const vector<double> c) {
     Show_2D_Matrix(b);
     cout << "T Matrix:";
     Show_2D_Matrix(t);
+
+
+
+    // Вычисляем BY = C:
+
+    // Вычисление Y i-нное
+
+    y[0] = c[0] / b[0][0];
+
+    for (unsigned short i = 1; i < a.size(); i++) {
+
+        y[i] = (1 / b[i][i]) * (c[i] - Lab5_Sigma3(b, y, i));
+
+    }
+
+
+
+    // Вычисляем TX = Y:
+
+    // Вычисление X i-нное
+
+    x[a.size() - 1] = y[a.size() - 1];
+
+    for (short i = a.size() - 2; i >= 0; i--) {
+
+        x[i] = y[i] - Lab5_Sigma4(t, x, i, a.size());
+
+    }
+
+
+
+    
+    cout << "\nC vector:";
+    Show_1D_Matrix(c);
+    cout << "\nY vector:";
+    Show_1D_Matrix(y);
+    cout << "\nX vector:";
+    Show_1D_Matrix(x);
+
     
 
 }
@@ -252,6 +336,8 @@ void Method(const vector<vector<double>>& a, const vector<double> c) {
 int main()
 {
     
+    
+
 
 
     // Мой массив
@@ -271,22 +357,22 @@ int main()
 
     // Вызов метода
     cout << "\nInitial matrix:";
+
+
+    c = Arr_Cut(mat);                           // Обрезаем последний столбец изначальной матрицы для дальнейшего удобства работы с вектором С
+
+
     Show_2D_Matrix(mat);
 
     // Проверка на a[0][0] = 0
     Swith_Lines_a00(mat, Zero_Check_a00(mat)); 
 
-
-    c = Arr_Cut(mat);
-
-    Show_1D_Matrix(c);
-
-    Show_2D_Matrix(mat);
-
+                     
     // Вывод результатов решения
     cout << "\nFinal response matrix";   
     Method(mat, c);
     
+
     system("pause"); // Окончание программы
     return 0;
 }
